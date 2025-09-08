@@ -12,8 +12,7 @@ import {
   PromptInputTextarea,
   PromptInputToolbar,
 } from '@/components/ai-elements/prompt-input';
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool';
-import { Image } from '@/components/ai-elements/image';
+import { Tool, ToolContent, ToolHeader } from '@/components/ai-elements/tool';
 import { Loader } from '@/components/ai-elements/loader';
 import { ToolUIPart } from 'ai';
 import { useState } from 'react';
@@ -88,15 +87,6 @@ const ChatBotDemo = () => {
                         <Tool key={`${message.id}-${i}`} defaultOpen={true}>
                           <ToolHeader type="tool-haiku_generation" state={currentHaikuTool.state} />
                           <ToolContent className='p-4 text-3xl'>
-                            {/* <ToolInput input={currentHaikuTool.input} /> */}
-                            {/* <ToolOutput
-                              output={
-                                <Response>
-                                  {currentHaikuTool.output?.haiku}
-                                </Response>
-                              }
-                              errorText={currentHaikuTool.errorText}
-                            /> */}
                             {currentHaikuTool.output?.haiku.split('\n').map((line, index) => (
                               <div key={index} className='font-serif'>{line}</div>
                             ))}
@@ -146,18 +136,3 @@ type HaikuToolUIPart = ToolUIPart<{
     output: HaikuToolOutput;
   };
 }>;
-
-type ImageToolUIPart = ToolUIPart<{
-  image_generation: {
-    input: ImageToolInput;
-    output: ImageToolOutput;
-  };
-}>;
-
-type ImageToolInput = {
-  haiku: string;
-};
-
-type ImageToolOutput = {
-  image: string;
-};
