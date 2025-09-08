@@ -99,7 +99,7 @@ export default function Chat() {
           }
         }}
       >
-        <input
+        {/* <input
           title="File Input"
           type="file"
           accept="image/*,application/pdf"
@@ -111,11 +111,11 @@ export default function Chat() {
           }}
           multiple
           ref={fileInputRef}
-        />
+        /> */}
         <input
           className="w-full p-2"
           value={input}
-          placeholder="Say something..."
+          placeholder="What's your haiku theme..."
           onChange={e => setInput(e.target.value)}
         />
       </form>
