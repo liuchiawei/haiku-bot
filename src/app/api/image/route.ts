@@ -6,7 +6,7 @@ export async function POST(req: Request) {
 
   const { image } = await experimental_generateImage({
     model: openai.image("dall-e-3"),
-    prompt: prompt,
+    prompt: "Generate an japanese traditional ukio-e style image for the following prompt: " + prompt + "with the kanji characters translated to from prompt on the top right corner",
     size: "1024x1024",
   });
 

@@ -8,33 +8,26 @@ import {
 import { Message, MessageContent } from '@/components/ai-elements/message';
 import {
   PromptInput,
-  PromptInputButton,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
-  PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
+import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool';
+import { Image } from '@/components/ai-elements/image';
+import { Loader } from '@/components/ai-elements/loader';
+import { ToolUIPart } from 'ai';
 import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { Response } from '@/components/ai-elements/response';
-import { GlobeIcon } from 'lucide-react';
 import {
   Source,
   Sources,
   SourcesContent,
   SourcesTrigger,
 } from '@/components/ai-elements/sources';
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from '@/components/ai-elements/reasoning';
-import { Loader } from '@/components/ai-elements/loader';
 
 const ChatBotDemo = () => {
   const [ input, setInput ] = useState('');
-  // const [model, setModel] = useState<string>(models[0].value);
-  const [ webSearch, setWebSearch ] = useState(false);
   const { messages, sendMessage, status } = useChat();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,6 +37,8 @@ const ChatBotDemo = () => {
       setInput('');
     }
   };
+
+  // 移除全域的 tool 變數，讓每個訊息使用自己的 tool 資料
 
   return (
     <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">
@@ -84,37 +79,30 @@ const ChatBotDemo = () => {
                               </Response>
                             </MessageContent>
                           </Message>
-                          {/* {message.role === 'assistant' && i === messages.length - 1 && (
-                            <Actions className="mt-2">
-                              <Action
-                                onClick={() => regenerate()}
-                                label="Retry"
-                              >
-                                <RefreshCcwIcon className="size-3" />
-                              </Action>
-                              <Action
-                                onClick={() =>
-                                  navigator.clipboard.writeText(part.text)
-                                }
-                                label="Copy"
-                              >
-                                <CopyIcon className="size-3" />
-                              </Action>
-                            </Actions>
-                          )} */}
                         </div>
                       );
-                    case 'reasoning':
+                    case 'tool-haiku_generation':
+                      // 直接使用當前 part 的資料，而不是全域的 haikuTool
+                      const currentHaikuTool = part as HaikuToolUIPart;
                       return (
-                        <Reasoning
-                          key={`${message.id}-${i}`}
-                          className="w-full"
-                          isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent>{part.text}</ReasoningContent>
-                        </Reasoning>
-                      );
+                        <Tool key={`${message.id}-${i}`} defaultOpen={true}>
+                          <ToolHeader type="tool-haiku_generation" state={currentHaikuTool.state} />
+                          <ToolContent className='p-4 text-3xl'>
+                            {/* <ToolInput input={currentHaikuTool.input} /> */}
+                            {/* <ToolOutput
+                              output={
+                                <Response>
+                                  {currentHaikuTool.output?.haiku}
+                                </Response>
+                              }
+                              errorText={currentHaikuTool.errorText}
+                            /> */}
+                            {currentHaikuTool.output?.haiku.split('\n').map((line, index) => (
+                              <div key={index} className='font-serif'>{line}</div>
+                            ))}
+                          </ToolContent>
+                        </Tool>
+                      )
                     default:
                       return null;
                   }
@@ -142,3 +130,34 @@ const ChatBotDemo = () => {
 };
 
 export default ChatBotDemo;
+
+
+type HaikuToolInput = {
+  theme: string;
+};
+
+type HaikuToolOutput = {
+  haiku: string;
+};
+
+type HaikuToolUIPart = ToolUIPart<{
+  haiku_generation: {
+    input: HaikuToolInput;
+    output: HaikuToolOutput;
+  };
+}>;
+
+type ImageToolUIPart = ToolUIPart<{
+  image_generation: {
+    input: ImageToolInput;
+    output: ImageToolOutput;
+  };
+}>;
+
+type ImageToolInput = {
+  haiku: string;
+};
+
+type ImageToolOutput = {
+  image: string;
+};
