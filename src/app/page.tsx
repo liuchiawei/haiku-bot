@@ -145,6 +145,10 @@ const ChatBotDemo = () => {
               <PromptInputButton
                 variant={webSearch ? 'default' : 'ghost'}
                 onClick={() => setWebSearch(!webSearch)}
+                className={`cursor-pointer
+                  ${webSearch
+                  ? 'border bg-foreground text-background'
+                  : ''}`}
               >
                 <GlobeIcon size={16} />
                 <span>Search</span>
