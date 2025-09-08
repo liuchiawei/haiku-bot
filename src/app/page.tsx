@@ -1,124 +1,178 @@
 'use client';
 
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from '@/components/ai-elements/conversation';
+import { Message, MessageContent } from '@/components/ai-elements/message';
+import {
+  PromptInput,
+  PromptInputButton,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input';
+import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { useRef, useState } from 'react';
-import Image from 'next/image';
+import { Response } from '@/components/ai-elements/response';
+import { GlobeIcon } from 'lucide-react';
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from '@/components/ai-elements/sources';
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@/components/ai-elements/reasoning';
+import { Loader } from '@/components/ai-elements/loader';
 
-async function convertFilesToDataURLs(files: FileList) {
-  return Promise.all(
-    Array.from(files).map(
-      file =>
-        new Promise<{
-          type: 'file';
-          mediaType: string;
-          url: string;
-        }>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            resolve({
-              type: 'file',
-              mediaType: file.type,
-              url: reader.result as string,
-            });
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        }),
-    ),
-  );
-}
+const ChatBotDemo = () => {
+  const [ input, setInput ] = useState('');
+  // const [model, setModel] = useState<string>(models[0].value);
+  const [ webSearch, setWebSearch ] = useState(false);
+  const { messages, sendMessage, status } = useChat();
 
-export default function Chat() {
-  const [input, setInput] = useState('');
-  const [files, setFiles] = useState<FileList | undefined>(undefined);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { messages, sendMessage } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-    }),
-  });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim()) {
+      sendMessage(
+        { text: input },
+        {
+          body: {
+            // model: model,
+            webSearch: webSearch,
+          },
+        },
+      );
+      setInput('');
+    }
+  };
 
   return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {messages.map(m => (
-        <div key={m.id} className="whitespace-pre-wrap">
-          {m.role === 'user' ? 'User: ' : 'AI: '}
-          {m.parts.map((part, index) => {
-            if (part.type === 'text') {
-              return <span key={`${m.id}-text-${index}`}>{part.text}</span>;
-            }
-            if (part.type === 'file' && part.mediaType?.startsWith('image/')) {
-              return (
-                <Image
-                  key={`${m.id}-image-${index}`}
-                  src={part.url}
-                  width={500}
-                  height={500}
-                  alt={`attachment-${index}`}
-                />
-              );
-            }
-            if (part.type === 'file' && part.mediaType === 'application/pdf') {
-              return (
-                <iframe
-                  key={`${m.id}-pdf-${index}`}
-                  src={part.url}
-                  width={500}
-                  height={600}
-                  title={`pdf-${index}`}
-                />
-              );
-            }
-            return null;
-          })}
-        </div>
-      ))}
+    <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">
+      <div className="flex flex-col h-full">
+        <Conversation className="h-full">
+          <ConversationContent>
+            {messages.map((message) => (
+              <div key={message.id}>
+                {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
+                  <Sources>
+                    <SourcesTrigger
+                      count={
+                        message.parts.filter(
+                          (part) => part.type === 'source-url',
+                        ).length
+                      }
+                    />
+                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
+                      <SourcesContent key={`${message.id}-${i}`}>
+                        <Source
+                          key={`${message.id}-${i}`}
+                          href={part.url}
+                          title={part.url}
+                        />
+                      </SourcesContent>
+                    ))}
+                  </Sources>
+                )}
+                {message.parts.map((part, i) => {
+                  switch (part.type) {
+                    case 'text':
+                      return (
+                        <div key={`${message.id}-${i}`}>
+                          <Message from={message.role}>
+                            <MessageContent>
+                              <Response>
+                                {part.text}
+                              </Response>
+                            </MessageContent>
+                          </Message>
+                          {/* {message.role === 'assistant' && i === messages.length - 1 && (
+                            <Actions className="mt-2">
+                              <Action
+                                onClick={() => regenerate()}
+                                label="Retry"
+                              >
+                                <RefreshCcwIcon className="size-3" />
+                              </Action>
+                              <Action
+                                onClick={() =>
+                                  navigator.clipboard.writeText(part.text)
+                                }
+                                label="Copy"
+                              >
+                                <CopyIcon className="size-3" />
+                              </Action>
+                            </Actions>
+                          )} */}
+                        </div>
+                      );
+                    case 'reasoning':
+                      return (
+                        <Reasoning
+                          key={`${message.id}-${i}`}
+                          className="w-full"
+                          isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                        >
+                          <ReasoningTrigger />
+                          <ReasoningContent>{part.text}</ReasoningContent>
+                        </Reasoning>
+                      );
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            ))}
+            {status === 'submitted' && <Loader />}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
 
-      <form
-        className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl space-y-2"
-        onSubmit={async event => {
-          event.preventDefault();
-
-          const fileParts =
-            files && files.length > 0
-              ? await convertFilesToDataURLs(files)
-              : [];
-
-          sendMessage({
-            role: 'user',
-            parts: [{ type: 'text', text: input }, ...fileParts],
-          });
-
-          setInput('');
-          setFiles(undefined);
-
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        }}
-      >
-        {/* <input
-          title="File Input"
-          type="file"
-          accept="image/*,application/pdf"
-          className=""
-          onChange={event => {
-            if (event.target.files) {
-              setFiles(event.target.files);
-            }
-          }}
-          multiple
-          ref={fileInputRef}
-        /> */}
-        <input
-          className="w-full p-2"
-          value={input}
-          placeholder="What's your haiku theme..."
-          onChange={e => setInput(e.target.value)}
-        />
-      </form>
+        <PromptInput onSubmit={handleSubmit} className="mt-4">
+          <PromptInputTextarea
+            placeholder="What's your haiku theme..."
+            onChange={(e) => setInput(e.target.value)}
+            value={input}
+          />
+          <PromptInputToolbar>
+            <PromptInputTools>
+              <PromptInputButton
+                variant={webSearch ? 'default' : 'ghost'}
+                onClick={() => setWebSearch(!webSearch)}
+              >
+                <GlobeIcon size={16} />
+                <span>Search</span>
+              </PromptInputButton>
+              {/* <PromptInputModelSelect
+                onValueChange={(value) => {
+                  setModel(value);
+                }}
+                value={model}
+              >
+                <PromptInputModelSelectTrigger>
+                  <PromptInputModelSelectValue />
+                </PromptInputModelSelectTrigger>
+                <PromptInputModelSelectContent>
+                  {models.map((model) => (
+                    <PromptInputModelSelectItem key={model.value} value={model.value}>
+                      {model.name}
+                    </PromptInputModelSelectItem>
+                  ))}
+                </PromptInputModelSelectContent>
+              </PromptInputModelSelect> */}
+            </PromptInputTools>
+            <PromptInputSubmit disabled={!input} status={status} />
+          </PromptInputToolbar>
+        </PromptInput>
+      </div>
     </div>
   );
-}
+};
+
+export default ChatBotDemo;
