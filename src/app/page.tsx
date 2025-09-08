@@ -40,15 +40,7 @@ const ChatBotDemo = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      sendMessage(
-        { text: input },
-        {
-          body: {
-            // model: model,
-            webSearch: webSearch,
-          },
-        },
-      );
+      sendMessage({ text: input });
       setInput('');
     }
   };
@@ -141,36 +133,6 @@ const ChatBotDemo = () => {
             value={input}
           />
           <PromptInputToolbar>
-            <PromptInputTools>
-              <PromptInputButton
-                variant={webSearch ? 'default' : 'ghost'}
-                onClick={() => setWebSearch(!webSearch)}
-                className={`cursor-pointer
-                  ${webSearch
-                  ? 'border bg-foreground text-background'
-                  : ''}`}
-              >
-                <GlobeIcon size={16} />
-                <span>Search</span>
-              </PromptInputButton>
-              {/* <PromptInputModelSelect
-                onValueChange={(value) => {
-                  setModel(value);
-                }}
-                value={model}
-              >
-                <PromptInputModelSelectTrigger>
-                  <PromptInputModelSelectValue />
-                </PromptInputModelSelectTrigger>
-                <PromptInputModelSelectContent>
-                  {models.map((model) => (
-                    <PromptInputModelSelectItem key={model.value} value={model.value}>
-                      {model.name}
-                    </PromptInputModelSelectItem>
-                  ))}
-                </PromptInputModelSelectContent>
-              </PromptInputModelSelect> */}
-            </PromptInputTools>
             <PromptInputSubmit disabled={!input} status={status} />
           </PromptInputToolbar>
         </PromptInput>
