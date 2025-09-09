@@ -28,10 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
+    <html lang='ja'>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} antialiased`}
       >
+        <h1 className='hidden md:block absolute top-1/2 left-2 -translate-y-1/2 h-full text-2xl font-bold font-serif text-center text-xl [writing-mode:vertical-rl] tracking-[0.5em]'>
+          俳句の森
+        </h1>
         {children}
       </body>
     </html>
