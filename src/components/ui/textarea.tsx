@@ -5,14 +5,26 @@ import { cn } from "@/lib/utils"
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea
-      data-slot="textarea"
+      data-slot='textarea'
       className={cn(
-        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
+        // 基礎樣式 - 不會造成 hydration 問題
+        'w-full bg-transparent outline-none',
+        'min-h-16 text-base transition-[color,box-shadow]',
+        // 互動狀態 - 可能需要客戶端渲染
+        'border-input placeholder:text-muted-foreground',
+        'aria-invalid:ring-destructive/20 aria-invalid:border-destructive',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        // 主題相關 - 使用 suppressHydrationWarning 或客戶端渲染
+        'dark:aria-invalid:ring-destructive/40 dark:bg-input/30',
+        // 響應式 - 考慮使用 CSS 變數
+        'md:text-sm',
+        // 實驗性 CSS - 可能需要 feature detection
+        'field-sizing-content shadow-xs',
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 export { Textarea }
